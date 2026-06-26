@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model Document {
@@ -14,7 +15,6 @@ model Document {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // 🔐 REQUIRED FOR SAAS (Clerk user isolation)
   userId    String
 
   @@index([userId])

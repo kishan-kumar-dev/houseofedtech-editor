@@ -17,16 +17,17 @@ It allows users to create, edit, rename, and manage documents in a Notion-like i
 - 🧠 Command menu support
 - ⚡ Fast API routes with Next.js App Router
 - 🗂 Prisma database integration
-- 🎨 Clean UI (custom + scalable for Tailwind/shadcn upgrade)
+- 🎨 Clean UI (custom, upgradeable to Tailwind/shadcn)
 
+---
 
 ## 🛠 Tech Stack
 
-- **Frontend:** Next.js 14+ (App Router), React
+- **Frontend:** Next.js 15 (App Router), React
 - **Backend:** Next.js API Routes
-- **Database:** Prisma ORM (PostgreSQL / MySQL / SQLite)
+- **Database:** Prisma ORM + PostgreSQL (Neon)
 - **Auth:** Clerk
-- **Styling:** Inline CSS (upgradeable to Tailwind/shadcn)
+- **Styling:** Custom CSS (upgradeable)
 
 ---
 
@@ -36,18 +37,18 @@ It allows users to create, edit, rename, and manage documents in a Notion-like i
 
 src/
 ├── app/
-│    ├── documents/
-│    │     ├── layout.tsx
-│    │     ├── [id]/page.tsx
-│    ├── api/
-│    │     ├── documents/
-│    │     ├── documents/[id]/
+│   ├── documents/
+│   │   ├── layout.tsx
+│   │   ├── [id]/page.tsx
+│   ├── api/
+│   │   ├── documents/
+│   │   ├── documents/[id]/
 ├── components/
-│    ├── CommandMenu.tsx
+│   ├── CommandMenu.tsx
 ├── lib/
-│    ├── prisma.ts
+│   ├── prisma.ts
 prisma/
-├── schema.prisma
+└── schema.prisma
 
 ````
 
@@ -56,9 +57,10 @@ prisma/
 ## ⚙️ Setup Instructions
 
 ### 1️⃣ Clone the repo
+
 ```bash
-git clone https://github.com/your-username/documents-editor.git
-cd documents-editor
+git clone https://github.com/kishan-kumar-dev/houseofedtech-editor.git
+cd houseofedtech-editor
 ````
 
 ---
@@ -73,12 +75,16 @@ npm install
 
 ### 3️⃣ Setup environment variables
 
-Create `.env.local` file:
+Create a `.env.local` file:
 
 ```env
-DATABASE_URL="your-database-url"
+DATABASE_URL="your-neon-postgres-url"
+DIRECT_URL="your-neon-direct-url"
+
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="your-clerk-key"
 CLERK_SECRET_KEY="your-clerk-secret"
+
+AUTH_SECRET="your-random-secret"
 ```
 
 ---
@@ -98,7 +104,7 @@ npx prisma migrate dev
 npm run dev
 ```
 
-App runs at:
+Open:
 
 ```
 http://localhost:3000
@@ -129,9 +135,9 @@ http://localhost:3000
 
 ## 📱 Mobile Features
 
-* Sidebar transforms into slide-in drawer
+* Sidebar becomes slide-in drawer
 * Overlay backdrop for focus mode
-* Smooth transitions (Notion-style UX)
+* Smooth transitions (Notion-like UX)
 
 ---
 
@@ -140,7 +146,7 @@ http://localhost:3000
 * 🗑️ Delete document feature
 * 🌙 Dark mode support
 * 🎨 Tailwind + shadcn UI upgrade
-* 📤 Share/export as PDF
+* 📤 Export as PDF
 * 🧾 Rich text editor (TipTap / Slate)
 * 🔄 Real-time collaboration
 
@@ -148,13 +154,13 @@ http://localhost:3000
 
 ## 🚀 Deployment
 
-### Deploy on Vercel
+Deploy on Vercel:
 
-```bash
+```
 npm run build
 ```
 
-Then connect repo to:
+Then connect repository at:
 
 👉 [https://vercel.com](https://vercel.com)
 

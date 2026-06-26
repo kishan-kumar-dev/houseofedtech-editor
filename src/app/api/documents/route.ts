@@ -1,13 +1,19 @@
 import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
+import { auth } from "@clerk/nextjs/server"
 
-const DEV_USER_ID = "local-dev-user"
-
+// GET all documents for logged-in user
 export async function GET() {
   try {
+    const { userId } = auth()
+
+    if (!userId) {
+      return NextResponse.json([], { status: 401 })
+    }
+
     const documents = await prisma.document.findMany({
       where: {
-        userId: DEV_USER_ID
+        userId
       },
       orderBy: {
         updatedAt: "desc"
@@ -18,21 +24,29 @@ export async function GET() {
   } catch (error) {
     console.log(error)
 
-    return NextResponse.json([], {
-      status: 500
-    })
+    return NextResponse.json([], { status: 500 })
   }
 }
 
+// CREATE document
 export async function POST(req: Request) {
   try {
+    const { userId } = auth()
+
+    if (!userId) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      )
+    }
+
     const body = await req.json()
 
     const document = await prisma.document.create({
       data: {
-        title: body.title || "Untitled",
+        title: body.title || "Untitled Document",
         content: body.content || "",
-        userId: DEV_USER_ID
+        userId
       }
     })
 
