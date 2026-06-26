@@ -1,55 +1,43 @@
 import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
-
-const DEV_USER_ID = "local-dev-user"
+import { auth } from "@clerk/nextjs/server"
 
 // GET single document
 export async function GET(
   request: Request,
-  { params }: {
-    params: Promise<{ id: string }>
-  }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id } =
-      await params
+    const { userId } = auth()
 
-    const document =
-      await prisma.document.findFirst({
-        where: {
-          id,
-          userId:
-            DEV_USER_ID
-        }
-      })
-
-    if (!document) {
+    if (!userId) {
       return NextResponse.json(
-        {
-          error:
-            "Document not found"
-        },
-        {
-          status: 404
-        }
+        { error: "Unauthorized" },
+        { status: 401 }
       )
     }
 
-    return NextResponse.json(
-      document
-    )
+    const document = await prisma.document.findFirst({
+      where: {
+        id: params.id,
+        userId
+      }
+    })
+
+    if (!document) {
+      return NextResponse.json(
+        { error: "Document not found" },
+        { status: 404 }
+      )
+    }
+
+    return NextResponse.json(document)
 
   } catch (error) {
     console.log(error)
-
     return NextResponse.json(
-      {
-        error:
-          "Failed to load document"
-      },
-      {
-        status: 500
-      }
+      { error: "Failed to load document" },
+      { status: 500 }
     )
   }
 }
@@ -57,47 +45,38 @@ export async function GET(
 // UPDATE document
 export async function PATCH(
   request: Request,
-  { params }: {
-    params: Promise<{ id: string }>
-  }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id } =
-      await params
+    const { userId } = auth()
 
-    const body =
-      await request.json()
+    if (!userId) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      )
+    }
 
-    const updated =
-      await prisma.document.update({
-        where: {
-          id
-        },
+    const body = await request.json()
 
-        data: {
-          title:
-            body.title,
+    const updated = await prisma.document.updateMany({
+      where: {
+        id: params.id,
+        userId
+      },
+      data: {
+        title: body.title,
+        content: body.content
+      }
+    })
 
-          content:
-            body.content
-        }
-      })
-
-    return NextResponse.json(
-      updated
-    )
+    return NextResponse.json(updated)
 
   } catch (error) {
     console.log(error)
-
     return NextResponse.json(
-      {
-        error:
-          "Update failed"
-      },
-      {
-        status: 500
-      }
+      { error: "Update failed" },
+      { status: 500 }
     )
   }
 }
@@ -105,17 +84,22 @@ export async function PATCH(
 // DELETE document
 export async function DELETE(
   request: Request,
-  { params }: {
-    params: Promise<{ id: string }>
-  }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id } =
-      await params
+    const { userId } = auth()
 
-    await prisma.document.delete({
+    if (!userId) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      )
+    }
+
+    await prisma.document.deleteMany({
       where: {
-        id
+        id: params.id,
+        userId
       }
     })
 
@@ -125,15 +109,9 @@ export async function DELETE(
 
   } catch (error) {
     console.log(error)
-
     return NextResponse.json(
-      {
-        error:
-          "Delete failed"
-      },
-      {
-        status: 500
-      }
+      { error: "Delete failed" },
+      { status: 500 }
     )
   }
 }

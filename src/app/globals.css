@@ -1,0 +1,10 @@
+.ProseMirror {
+  white-space: pre-wrap;
+  outline: none;
+  min-height: 300px;
+}
+
+/* optional better UX */
+.ProseMirror p {
+  margin: 0;
+}
