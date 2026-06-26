@@ -2,28 +2,24 @@ import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
 import { auth } from "@clerk/nextjs/server"
 
-// GET all documents for logged-in user
+// GET all documents
 export async function GET() {
   try {
-    const { userId } = auth()
+    const authResult = await auth()
+    const userId = authResult.userId
 
     if (!userId) {
       return NextResponse.json([], { status: 401 })
     }
 
     const documents = await prisma.document.findMany({
-      where: {
-        userId
-      },
-      orderBy: {
-        updatedAt: "desc"
-      }
+      where: { userId },
+      orderBy: { updatedAt: "desc" }
     })
 
     return NextResponse.json(documents)
   } catch (error) {
     console.log(error)
-
     return NextResponse.json([], { status: 500 })
   }
 }
@@ -31,7 +27,8 @@ export async function GET() {
 // CREATE document
 export async function POST(req: Request) {
   try {
-    const { userId } = auth()
+    const authResult = await auth()
+    const userId = authResult.userId
 
     if (!userId) {
       return NextResponse.json(
@@ -53,7 +50,6 @@ export async function POST(req: Request) {
     return NextResponse.json(document)
   } catch (error) {
     console.log(error)
-
     return NextResponse.json(
       { error: "Failed creating document" },
       { status: 500 }

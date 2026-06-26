@@ -5,10 +5,12 @@ import { auth } from "@clerk/nextjs/server"
 // GET single document
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { userId } = auth()
+    const authResult = await auth()
+    const userId = authResult.userId
+    const { id } = await params
 
     if (!userId) {
       return NextResponse.json(
@@ -19,7 +21,7 @@ export async function GET(
 
     const document = await prisma.document.findFirst({
       where: {
-        id: params.id,
+        id,
         userId
       }
     })
@@ -32,7 +34,6 @@ export async function GET(
     }
 
     return NextResponse.json(document)
-
   } catch (error) {
     console.log(error)
     return NextResponse.json(
@@ -45,10 +46,13 @@ export async function GET(
 // UPDATE document
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { userId } = auth()
+    const authResult = await auth()
+    const userId = authResult.userId
+    const { id } = await params
+    const body = await request.json()
 
     if (!userId) {
       return NextResponse.json(
@@ -57,21 +61,15 @@ export async function PATCH(
       )
     }
 
-    const body = await request.json()
-
-    const updated = await prisma.document.updateMany({
-      where: {
-        id: params.id,
-        userId
-      },
+    await prisma.document.updateMany({
+      where: { id, userId },
       data: {
         title: body.title,
         content: body.content
       }
     })
 
-    return NextResponse.json(updated)
-
+    return NextResponse.json({ success: true })
   } catch (error) {
     console.log(error)
     return NextResponse.json(
@@ -84,10 +82,12 @@ export async function PATCH(
 // DELETE document
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { userId } = auth()
+    const authResult = await auth()
+    const userId = authResult.userId
+    const { id } = await params
 
     if (!userId) {
       return NextResponse.json(
@@ -96,17 +96,21 @@ export async function DELETE(
       )
     }
 
-    await prisma.document.deleteMany({
+    const deleted = await prisma.document.deleteMany({
       where: {
-        id: params.id,
+        id,
         userId
       }
     })
 
-    return NextResponse.json({
-      success: true
-    })
+    if (deleted.count === 0) {
+      return NextResponse.json(
+        { error: "Document not found" },
+        { status: 404 }
+      )
+    }
 
+    return NextResponse.json({ success: true })
   } catch (error) {
     console.log(error)
     return NextResponse.json(
