@@ -1,9 +1,16 @@
-import { SignUp } from "@clerk/nextjs"
+import { SignUp } from "@clerk/nextjs";
 
-export default function Page() {
+export default function SignUpPage() {
   return (
-    <div style={{ display: "flex", justifyContent: "center", marginTop: 80 }}>
+    <div
+      style={{
+        minHeight: "100vh",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+      }}
+    >
       <SignUp />
     </div>
-  )
+  );
 }
