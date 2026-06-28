@@ -1,66 +1,65 @@
-"use client"
+"use client";
 
-import { useCallback, useEffect, useState } from "react"
-import { useRouter, usePathname } from "next/navigation"
-import { useUser, SignInButton, UserButton } from "@clerk/nextjs"
-import CommandMenu from "@/components/CommandMenu"
+import { useCallback, useEffect, useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
+import { useUser, SignInButton, UserButton } from "@clerk/nextjs";
+import CommandMenu from "@/components/CommandMenu";
 
 type Doc = {
-  id: string
-  title: string
-}
+  id: string;
+  title: string;
+};
 
 export default function DocumentsLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
-  const { isSignedIn } = useUser()
-  const router = useRouter()
-  const pathname = usePathname()
+  const { isSignedIn } = useUser();
+  const router = useRouter();
+  const pathname = usePathname();
 
   const activeId = pathname.startsWith("/documents/")
     ? pathname.split("/").pop()
-    : null
+    : null;
 
-  const [docs, setDocs] = useState<Doc[]>([])
-  const [search, setSearch] = useState("")
-  const [loading, setLoading] = useState(false)
+  const [docs, setDocs] = useState<Doc[]>([]);
+  const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  // MOBILE SIDEBAR STATE
-  const [mobileOpen, setMobileOpen] = useState(false)
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const loadDocs = useCallback(async () => {
-    setLoading(true)
+    setLoading(true);
     try {
-      const res = await fetch("/api/documents")
+      const res = await fetch("/api/documents");
 
       if (!res.ok) {
-        setDocs([])
-        return
+        setDocs([]);
+        return;
       }
 
-      const data = await res.json()
-      setDocs(Array.isArray(data) ? data : [])
-    } catch (error) {
-      console.log(error)
-      setDocs([])
+      const data = await res.json();
+      setDocs(Array.isArray(data) ? data : []);
+    } catch {
+      setDocs([]);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }, [])
+  }, []);
 
   useEffect(() => {
-    if (!isSignedIn) return
-    loadDocs()
+    if (!isSignedIn) return;
 
-    const refresh = () => loadDocs()
-    window.addEventListener("documents-updated", refresh)
+    loadDocs();
+
+    const refresh = () => loadDocs();
+    window.addEventListener("documents-updated", refresh);
 
     return () => {
-      window.removeEventListener("documents-updated", refresh)
-    }
-  }, [isSignedIn, loadDocs])
+      window.removeEventListener("documents-updated", refresh);
+    };
+  }, [isSignedIn, loadDocs]);
 
   const createDoc = async () => {
     try {
@@ -71,53 +70,99 @@ export default function DocumentsLayout({
           title: "Untitled Document",
           content: "",
         }),
-      })
+      });
 
-      if (!res.ok) return
+      if (!res.ok) return;
 
-      const newDoc = await res.json()
-      await loadDocs()
+      const newDoc = await res.json();
+      await loadDocs();
 
       if (newDoc?.id) {
-        router.push(`/documents/${newDoc.id}`)
-        setMobileOpen(false)
+        router.push(`/documents/${newDoc.id}`);
+        setMobileOpen(false);
       }
-    } catch (error) {
-      console.log(error)
+    } catch {
+      console.log("Error creating document");
     }
-  }
+  };
 
   const renameDoc = async (id: string, currentTitle: string) => {
-    const newTitle = prompt("Rename document", currentTitle)
-    if (!newTitle?.trim()) return
+    const newTitle = prompt("Rename document", currentTitle);
+    if (!newTitle?.trim()) return;
 
     await fetch(`/api/documents/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ title: newTitle.trim() }),
-    })
+    });
 
-    loadDocs()
-  }
+    loadDocs();
+  };
 
   const filteredDocs = docs.filter((doc) =>
-    doc.title?.toLowerCase().includes(search.toLowerCase())
-  )
+    doc.title?.toLowerCase().includes(search.toLowerCase()),
+  );
 
+  // =========================
+  // NOT SIGNED IN UI
+  // =========================
   if (!isSignedIn) {
     return (
-      <div style={{ padding: 40 }}>
-        <h2>Please sign in</h2>
-        <div style={{ marginTop: 20 }}>
-          <SignInButton />
+      <div
+        style={{
+          height: "100vh",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+          background: "#f4f6f8",
+          textAlign: "center",
+        }}
+      >
+        <div
+          style={{
+            background: "white",
+            padding: 30,
+            borderRadius: 12,
+            boxShadow: "0 10px 30px rgba(0,0,0,0.1)",
+            minWidth: 280,
+          }}
+        >
+          <h2 style={{ fontSize: 22, fontWeight: 600 }}>
+            Welcome to Documents
+          </h2>
+
+          <p style={{ marginTop: 8, color: "#666" }}>
+            Sign in to create and manage your notes
+          </p>
+
+          <div style={{ marginTop: 20 }}>
+            <SignInButton>
+              <button
+                style={{
+                  padding: "10px 16px",
+                  borderRadius: 8,
+                  border: "none",
+                  background: "black",
+                  color: "white",
+                  cursor: "pointer",
+                }}
+              >
+                Sign in
+              </button>
+            </SignInButton>
+          </div>
         </div>
       </div>
-    )
+    );
   }
 
+  // =========================
+  // MAIN APP UI
+  // =========================
   return (
     <div style={{ display: "flex", height: "100vh" }}>
-      {/* MOBILE TOP BAR */}
+      {/* TOP BAR */}
       <div
         style={{
           position: "fixed",
@@ -217,9 +262,7 @@ export default function DocumentsLayout({
         {loading ? (
           <div style={{ marginTop: 20 }}>Loading...</div>
         ) : filteredDocs.length === 0 ? (
-          <div style={{ marginTop: 20, color: "#888" }}>
-            No documents
-          </div>
+          <div style={{ marginTop: 20, color: "#888" }}>No documents</div>
         ) : (
           filteredDocs.map((doc) => (
             <div
@@ -230,14 +273,13 @@ export default function DocumentsLayout({
                 padding: 10,
                 marginTop: 6,
                 borderRadius: 8,
-                background:
-                  doc.id === activeId ? "#f3f4f6" : "transparent",
+                background: doc.id === activeId ? "#f3f4f6" : "transparent",
               }}
             >
               <div
                 onClick={() => {
-                  router.push(`/documents/${doc.id}`)
-                  setMobileOpen(false)
+                  router.push(`/documents/${doc.id}`);
+                  setMobileOpen(false);
                 }}
                 style={{
                   flex: 1,
@@ -245,8 +287,7 @@ export default function DocumentsLayout({
                   whiteSpace: "nowrap",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
-                  fontWeight:
-                    doc.id === activeId ? "bold" : "normal",
+                  fontWeight: doc.id === activeId ? "bold" : "normal",
                 }}
               >
                 {doc.title}
@@ -279,19 +320,15 @@ export default function DocumentsLayout({
         {children}
       </div>
 
-      {/* DESKTOP RESPONSIVE HIDE SIDEBAR */}
+      {/* RESPONSIVE FIX */}
       <style jsx>{`
         @media (max-width: 768px) {
           div[style*="margin-left: 280px"] {
             margin-left: 0 !important;
             padding-top: 70px !important;
           }
-
-          div[style*="width: 280px"] {
-            width: 280px;
-          }
         }
       `}</style>
     </div>
-  )
+  );
 }
